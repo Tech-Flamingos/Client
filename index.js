@@ -1,7 +1,7 @@
 'use strict';
 const readline = require('readline');
 const { io } = require('socket.io-client');
-const socket = io.connect('http://localhost:3003/games');
+const socket = io.connect('http://localhost:3001/games');
 const inquirer = require('inquirer');
 const chalk = require('chalk');
 

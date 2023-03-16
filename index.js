@@ -1,7 +1,7 @@
 'use strict';
-const readline = require('readline');
 const { io } = require('socket.io-client');
-const socket = io.connect('http://localhost:3001/games');
+// const socket = io.connect('http://localhost:3001/games');
+const socket = io.connect('https://adventureai-server.onrender.com/games');
 const inquirer = require('inquirer');
 const chalk = require('chalk');
 
@@ -64,6 +64,8 @@ socket.on('AI-REPLY', payload => {
 
 socket.on('LOGGED-IN', payload => {
   main(payload);
+  payload.message = 'hello';
+  socket.emit('NEW-MESSAGE', payload);
 });
 
 login();

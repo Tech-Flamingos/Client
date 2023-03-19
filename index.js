@@ -5,7 +5,7 @@ const socket = io.connect('http://localhost:3001/games');
 const inquirer = require('inquirer');
 const chalk = require('chalk');
 
-function login(){
+function login() {
   inquirer.prompt([{ type: 'list', name: 'sign', message: chalk.green('Welcome to Adventure AI!'), choices: ['Sign in', 'Sign up', 'Continue as guest'] }]).then((answers) => {
     let userObj = {};
     if (answers.sign === 'Sign up') {
@@ -39,7 +39,7 @@ function login(){
   });
 }
 
-function roomBool(payload){
+function roomBool(payload) {
   inquirer.prompt([{ type: 'list', name: 'roomBool', message: chalk.green('Adventure AI'), choices: ['New Game', 'View active games'] }]).then((answers) => {
     if (answers.roomBool === 'New Game') {
       socket.emit('NEW-GAME', payload);
@@ -53,24 +53,22 @@ function roomBool(payload){
   });
 }
 
-async function main(user){
-
-  console.log(chalk.green(`Hello ${user.user.name}`));
+async function main(payload) { 
   let userWantsToExit = false;
 
-  while (!userWantsToExit) {
-    await inquirer.prompt([{ type: 'input', name: 'message', message: 'Enter a message (type "bye" to exit): ' }]).then((answers) => {
-      userWantsToExit = answers.message === 'bye';
-      if (!userWantsToExit) {
-        socket.emit('NEW-MESSAGE', { queueId: 'adventureGame', message: answers.message });
-      }
-    });
-  }
-  socket.disconnect();
+  await inquirer.prompt([{ type: 'input', name: 'message', message: 'Enter a message (type "bye" to exit): ' }]).then((answers) => {
+    userWantsToExit = answers.message === 'bye';
+    if (!userWantsToExit) {
+      socket.emit('NEW-MESSAGE', { ...payload, message: answers.message });
+    }else{
+      socket.disconnect();
+    }
+  });
 }
 
 socket.on('AI-REPLY', payload => {
-  console.log('AI: ', payload.message);
+  console.log('AI: ', payload.AImessage);
+  main(payload);
 });
 
 socket.on('LOGGED-IN', payload => {
@@ -84,12 +82,21 @@ socket.on('ALL-ROOMS', payload => {
   let q = payload.allRooms;
   if (payload.allRooms.length) {
     inquirer.prompt([{ type: 'list', name: 'userRoom', message: chalk.green('Available rooms'), choices: q }]).then((answers) => {
-      socket.emit('JOIN-ROOM', {...answers, ...payload});
+      socket.emit('JOIN-ROOM', { ...answers, ...payload });
     });
   } else {
     console.log('No available rooms');
     roomBool(payload);
   }
 });
+
+socket.on('START-GAME', payload => {
+  console.log(chalk.green(`Hello ${payload.user.name}`));
+  main(payload);
+});
+
+// socket.on('', payload => { 
+
+// });
 
 login();
